@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+</head>
+<body>
+    <div>
+        <h1>Real-Time Chat</h1>
+
+        <div id="chatArea">
+            <!-- Messages will be displayed here -->
+        </div>
+
+        <input type="text" id="messageInput" placeholder="Enter your message">
+        <button id="sendButton">Send</button>
+    </div>
+
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub")
+            .build();
+
+        connection.on("ReceiveMessage", (user, message) => {
+            const messageDiv = document.createElement("div");
+            messageDiv.innerHTML = `<strong>${user}: </strong>${message}`;
+            document.getElementById("chatArea").appendChild(messageDiv);
+        });
+
+        connection.start().catch(err => console.error(err));
+
+        document.getElementById("sendButton").addEventListener("click", () => {
+            const user = "You";
+            const message = document.getElementById("messageInput").value;
+            if (message.trim() !== "") {
+                sendMessage(user, message);
+            }
+        });
+
+        function sendMessage(user, message) {
+            connection.invoke("SendMessage", user, message).catch(err => console.error(err));
+        }
+    </script>
+</body>
+</html>
